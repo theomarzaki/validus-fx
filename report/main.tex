@@ -1,0 +1,198 @@
+\documentclass[11pt]{article}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{float}
+\usepackage[labelfont=bf]{caption}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{svg}
+
+\title{Private Credit Fund FX Hedging Strategies Report}
+\author{Omar Nassef}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Executive Summary}
+
+The report outlines the hedging strategy recommended for the fund to balance FX volatility. The fund faces a currency mismatch; investors contribute in USD, but the assets generate returns to EUR. Analysis reveals that without hedging, the FX exposure would introduce significant volatility, as performance becomes a function of both credit quality and EUR/USD movements.
+
+Thus, we explore 5 different hedging strategies: No strategy, Static Forward, Partial Hedging at 50\%, Partial Hedging at 80\%, and Dynamic Hedging.
+
+The results demonstrate that for consistent performance at a reduced relative risk, the static forward hedging strategy is favourable. Alternatively, a better performance can be obtained with the dynamic hedging strategy at the cost of a larger relative risk.
+
+
+\section{Performance Metrics}
+
+To evaluate the performance of the fund, we utilise the following metrics: IRR (Internal Rate of Return), Multiple on Invested Capital, and CVaR (Conditional Value at Risk). Below is the metric and the reasoning behind choosing said metric.
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{c|c|c|p{7cm}}
+         \textbf{Metric} & \textbf{Purpose} & \textbf{Sensitivity} & \textbf{Affect}  \\
+         \toprule
+         IRR & Primary return measure & High & Timing of FX impacts gain or loss\\
+         Multiple & Capital productivity & High & Appreciating/Depreciating foreign currency impacts metric greatly \\
+         VaR/CVaR & Tail risk measurement & High & Short-Term Net Asset Movements from interest rates, credit quality and liquidity may cause extreme losses.
+    \end{tabular}
+    \caption{Performance Metric Framework}
+    \label{tab:placeholder}
+\end{table}
+
+
+
+
+
+\section{Data Overview and Model Calibration}
+
+\subsection{Historical Data Analysis}
+
+We utilise 5 key metrics from the historical dataset to guide the model creation and calibration.
+
+\begin{itemize}
+    \item EUR/USD Spot Mid: Spot rate time series drift estimation.
+    \item EUR/USD year ATM Volume Mid: At-the-money implied volatility
+    \item EUR/USD 25 Delta Risk Reversal Mid: Volatility skew
+    \item EUR/USD 25 Delta Butterfly Mid: Volatility smile curve.
+\end{itemize}
+
+Although other metrics can be taken from APIs, due to time constraints, we decide to work with the historical data that was given.
+
+\subsection{Model Design and Calibration}
+
+We implement a Heston Stochastic Volatility Model, that is calibrated to the EUR/USD historical dataset. We chose this model as we assume that the volatility of the asset follows a random process and is not static, which is typically the case in real markets. This rules out static volatility models such as Garman-Kohlhagen. 
+
+Furthermore, as the interest rate data is not provided in the historical dataset, and obtaining these values may require outside data collection we assume that the latest interest rate data is applicable to the previous years. This would also rule out models that require the interest rate data for its calculations such as Hull-White model.
+
+Additionally, we assume that the static interest rates can be used to infer the forward rates so supplement our model calculations.
+
+We utilise the Black-Scholes model to obtain market prices and minimise their loss compared to the Heston model prices. The calibration results are as follows:
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{c|c}
+         \textbf{Parameter} & \textbf{Value}  \\
+         \toprule
+         theta & 0.25 \\
+         kappa & 5.0 \\
+         sigma & 0.85 \\
+         rho & 0 \\
+         mu & 0.005
+    \end{tabular}
+    \caption{Heston Calibrated Model Values}
+    \label{tab:placeholder}
+\end{table}
+
+We use Monte-Carlo simulations to calculate the option price paths using Euler schemes (for simplicity, compared to Quadratic Exponential scheme), and utilise these to infer the instantaneous volatility, as seen in Fig. \ref{fig:sample_spot_p} and Fig. \ref{fig:sample_vol_p}. The figures showcase sample paths, however, in the simulation for the strategies a much larger number of paths is used to obtain statistical significance.
+
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.7\linewidth]{../Figures/TrialSpotPaths.svg}
+    \caption{Sample Spot Paths}
+    \label{fig:sample_spot_p}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.7\linewidth]{../Figures/TrialVolPaths.svg}
+    \caption{Sample Volatility Paths}
+    \label{fig:sample_vol_p}
+\end{figure}
+
+\section{Hedging Strategies and Their Impact}
+
+We simulate 10,000 paths using the calibrated Heston model to evaluate the strategies with respect to: IRR Distributions, Mean Risk-Return Trade off, Multiple on Invested Capital distribution, and CVaR.
+
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.8\linewidth]{../Figures/StrategyIRRDist.svg}
+    \caption{IRR distribution for hedging strategies}
+    \label{fig:irrdist}
+\end{figure}
+
+As seen from Fig. \ref{fig:irrdist}, the static forward hedging strategy had the most stable IRR, however, it limited the potential gain that could be obtained compared to the dynamic delta hedging ratio.
+
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.8\linewidth]{../Figures/StrategyIRRScatter.svg}
+    \caption{Mean Risk-Return Trade-off for hedging strategies}
+    \label{fig:risk-return}
+\end{figure}
+
+Alternatively, for Fig. \ref{fig:risk-return}, the dynamic delta strategy, obtained a much higher return with a slightly larger risk compared to the static strategy, with the other strategies performing worse than the static strategy.
+
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.8\linewidth]{../Figures/StrategyMultipleDist.svg}
+    \caption{Multiples on Invested Capital for hedging strategies}
+    \label{fig:multiples}
+\end{figure}
+
+As for the Multiples on Invested Capital, in Fig. \ref{fig:multiples}, the static forward strategy again displayed consistent performance. However, strategies such as dynamic delta gave similar performance and sometimes exceeding the performance of its counter-parts albeit less consistently.
+
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.8\linewidth]{../Figures/StrategyCVaR.svg}
+    \caption{CVaR for hedging strategies}
+    \label{fig:cvar}
+\end{figure}
+
+Finally, for the CVaR (Fig. \ref{fig:cvar}), the no hedging strategy and partial hedging both showcased a loss. However, the static forward hedging and dynamic delta hedging both showcased a higher probability of making profit.
+
+\subsection{Extreme Scenarios}
+
+We also explore the best and worst case scenarios (5\%) against the different strategies. 
+
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.8\linewidth]{../Figures/StrategyIRRDistExtreme.svg}
+    \caption{IRR distribution for hedging strategies for extreme scenarios.}
+    \label{fig:irrextreme}
+\end{figure}
+
+For the best and worse case scenario, the IRR distribution is presented in Fig. \ref{fig:irrextreme}. Expectantly, the no hedging strategy performed the worst. On the other hand, the dynamic delta and static forward both showed almost comparable performance. However, in the best case scenario, it can be seen that the dynamic delta strategy outperformed the static strategy by magnitudes, hinting at the strategy's effectiveness in tail end cases.
+
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.8\linewidth]{../Figures/StrategyMultipleDistExtreme.svg}
+    \caption{Multiples on Invested Capital for hedging strategies for extreme scenarios.}
+    \label{fig:multiplesextreme}
+\end{figure}
+
+The same trend of performance is seen in Fig. \ref{fig:multiplesextreme}, where the performance in the worst case scenario for the dynamic hedging was comparable to that of the static forward, whereas in the best case scenario, the static forward strategy fell off.
+
+\section{Cost Analysis}
+
+We utilise a weighted approach to arrive at the benefit-cost analysis.
+
+Where we focus on IRR preservation, risk reduction and VaR reduction, each with an equal weighting. Below is the table showcasing the scores for each of the strategies.
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{c|c|c|c|c}
+         \textbf{Strategy} & \textbf{IRR Preservation} & \textbf{Risk Reduction} & \textbf{VaR Reduction}  & \textbf{Weighted Value}  \\
+         \toprule
+            No Hedge & 0.000000 & 0.000000&0.000000& 0.000000 \\
+            Static Forward Hedge & -0.102031& 1.000000& 1.286207& 0.720778 \\
+            Partial Hedge 0.5 & -0.075670& 0.544463& 0.882898& 0.446058 \\
+            Partial Hedge 0.8 & -0.095687& 0.792268& 1.140002& 0.606072 \\
+            Dynamic Delta Hedge & -0.144570& 0.710203& 1.286520& 0.611210 \\
+    \end{tabular}
+    \caption{Weighted Cost-Benefit Analysis for the hedging strategies}
+    \label{tab:cba}
+\end{table}
+
+
+\section{Recommendations}
+
+Based on Table. \ref{tab:cba}, the highest scoring weighted value was the static forward hedging strategy followed closely by the partial hedging at a hedge ratio of 0.85. 
+
+However, we recommend that if the investor is looking for consistent performance and reducing the associated risk of the fund then the static forward hedging strategy is ideal. Alternatively, if the investor can withstand some risk but with the opportunity for a relatively higher performance then the delta hedging strategy can be incorporated.
+
+\end{document}
