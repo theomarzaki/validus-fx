@@ -1,0 +1,254 @@
+\documentclass{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage{svg}
+\usepackage{booktabs}
+% \usepackage[maxcitenames=1]{biblatex}
+
+\renewcommand{\footnotesize}{\tiny}
+\setbeamertemplate{navigation symbols}{}
+\pdfstringdefDisableCommands{%
+  \def\\{}%
+}
+
+\title{Private Credit Fund - FX Hedging Strategies}
+\institute{Validus Risk Management}
+\author[Omar Nassef]{Omar Nassef}
+\date{\tiny\today}
+
+\usetheme{Warsaw}
+\usecolortheme{beaver}
+
+\setbeamercolor{block title}{use=structure,fg=black,bg=white!75!black}
+\setbeamercolor{block body}{use=structure,fg=black,bg=white!20!white}
+
+\setbeamertemplate{headline}{}
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}
+\tableofcontents
+\frametitle{Table of Contents}
+\end{frame}
+
+
+\section{Executive Summary}
+\begin{frame}{Executive Summary}
+
+    \begin{block}{Problem}
+        Fund faces currency mismatch. Contribution in USD but returns are in EUR.\\
+        Performance becomes a function of underlying asset and currency movements.
+    \end{block}
+    
+    \begin{block}{Solution}
+        Static Forward Hedging for risk averse appetite.\\
+        Dynamic Hedging Strategy for risk neutral with potential upside capture.
+    \end{block}
+
+    \begin{block}{Limitations}
+        Interest rate simplification.\\
+        Transaction costs omitted.
+    \end{block}
+
+\end{frame}
+
+\section{Market Analysis}
+\begin{frame}[allowframebreaks]{Market Analysis}
+    
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.9\linewidth]{../Figures/spot-rate.png}
+        \caption{Currency Spot Rate}
+        \tiny\textit{Key Dates: 2020 - COVID, 2022 - War Crisis}
+    \end{figure}
+    
+
+    \framebreak
+
+    \footnotesize
+    \begin{table}
+        \centering
+        \begin{tabular}{c|c|c|c|c|c}
+            \textbf{Regime} & \textbf{Freq} & \textbf{Spot Return} & \textbf{Volatility} & \textbf{Risk Reversal} & \textbf{Put Skew}\\
+            \toprule
+            High Vol (Panic) & 25\% & +2.2\% & 10.3\% & -134\% & 86\%\\
+            Normal Vol & 50\% & +2.3\% & 7.0\% & -59\% & 77\%\\
+            Low Vol (Calm) & 25\% & -3.7\% & 5.2\% & -31\% & 77\%\\
+        \end{tabular}
+        \\
+        \footnotesize\textit{Risk Reversal: Difference between put and call volatility. -100\% = puts twice expensive as calls (fear).\\
+        Uses 1 Year time-lag data.}
+    \end{table}
+
+    \normalsize
+
+    \begin{block}{Panic Mode}
+        Volatility Spikes to 2 $\times$ calm periods.\\
+        Markets paying significant premium for EUR protection (-134\% RR).
+    \end{block}
+
+    \begin{block}{Calm}
+        Low volatility but steady erosion of returns.
+    \end{block} 
+
+    Downside protection is disproportionately more expensive.
+    
+\end{frame}
+
+\section{Methodology}
+\begin{frame}{Methodology}
+    
+    \begin{block}{Model}
+        Heston Stochastic Volatility (calibrated to historical data provided).
+    \end{block}
+
+    \begin{block}{Simulation}
+        Monte-Carlo with 10,000 paths
+    \end{block}
+
+    \begin{block}{Assumptions}
+        \begin{itemize}
+            \item Static interest rates can be used to infer forward rates.
+            \item Euler scheme for option price calculation is sufficient.
+            \item Computational costs can be negated.
+        \end{itemize}
+    \end{block}
+
+\end{frame}
+
+\section{Core Findings}
+\begin{frame}[allowframebreaks]{Core Findings}
+
+    \begin{figure}[H]
+    \centering
+    \includesvg[width=0.8\linewidth]{../Figures/StrategyIRRDist.svg}
+    \caption{IRR distribution for hedging strategies}
+    \label{fig:irrdist}
+\end{figure}
+
+\framebreak
+
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.8\linewidth]{../Figures/StrategyIRRScatter.svg}
+    \caption{Mean Risk-Return Trade-off for hedging strategies}
+    \label{fig:risk-return}
+\end{figure}
+
+\framebreak
+
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.8\linewidth]{../Figures/StrategyMultipleDist.svg}
+    \caption{Multiples on Invested Capital for hedging strategies}
+    \label{fig:multiples}
+\end{figure}
+
+\framebreak
+
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.8\linewidth]{../Figures/StrategyCVaR.svg}
+    \caption{CVaR for hedging strategies}
+    \label{fig:cvar}
+\end{figure}
+    
+\end{frame}
+
+\section{Tail Risk Analysis}
+\begin{frame}[allowframebreaks]{Tail Risk Analysis}
+
+    \begin{figure}[H]
+    \centering
+    \includesvg[width=0.8\linewidth]{../Figures/StrategyIRRDistExtreme.svg}
+    \caption{IRR distribution for hedging strategies for extreme scenarios.}
+    \label{fig:irrextreme}
+\end{figure}
+
+\framebreak
+
+\begin{figure}[H]
+    \centering
+    \includesvg[width=0.8\linewidth]{../Figures/StrategyMultipleDistExtreme.svg}
+    \caption{Multiples on Invested Capital for hedging strategies for extreme scenarios.}
+    \label{fig:multiplesextreme}
+\end{figure}
+    
+\end{frame}
+
+\section{Cost-Benefit Analysis}
+\begin{frame}{Cost-Benefit Analysis}
+
+\tiny
+\begin{table}[h]
+    \centering
+    \begin{tabular}{c|c|c|c|c}
+         \textbf{Strategy} & \textbf{IRR Preservation} & \textbf{Risk Reduction} & \textbf{VaR Reduction}  & \textbf{Weighted Value}  \\
+         \toprule
+            No Hedge & 0  & 0 &0 & 0  \\
+            Static Forward Hedge & -0.10 & 1.00 & 1.29 & 0.72 \\
+            Partial Hedge 0.5 & -0.08& 0.54& 0.88& 0.45 \\
+            Partial Hedge 0.8 & -0.10 & 0.79 & 1.14 & 0.61 \\
+            Dynamic Delta Hedge & -0.14 & 0.71 & 1.29 & 0.61 \\
+    \end{tabular}
+    \caption{Weighted Cost-Benefit Analysis for the hedging strategies}
+    \label{tab:cba}
+\end{table} 
+
+\normalsize
+Weighted Value = equal weighting for each of the metrics.
+
+\end{frame}
+
+\section{Recommendations}
+\begin{frame}{Recommendations}
+    
+    Static Forward Hedging:
+    \begin{itemize}
+        \item[$\checkmark$]  Premium cost minimised.
+        \item[$\checkmark$]  Eliminates FX risk.
+        \item[$\times$] No upside participation.
+        \item[$\times$] Inflexible as cash flow changes.
+        
+    \end{itemize}
+        
+    Dynamic Hedging:
+    \begin{itemize}
+        \item[$\checkmark$] Upside movement participation. 
+        \item[$\times$] Transaction costs from rebalancing.
+        \item[$\times$] Lags during large quick delta moves. %Gamma
+        \item[$\times$] Sudden volatility spikes may negatively impact option prices. %Vega
+        % Vega measures an option's price sensitivity to changes in implied volatility.
+        % Gamma measures the rate at which an option's Delta changes as the underlying asset's price moves.
+    \end{itemize}
+    
+\end{frame}
+
+\section{Limitation and Drawbacks}
+\begin{frame}{Limitations and Drawbacks}
+
+    \begin{itemize}
+        \item Back testing not covered. Max drawdown, Sharpe ratio and tracking error missing as metrics. 
+        \item Transaction Costs not taken into account. 
+        \item Interest rate not modeled as a stochastic function.
+        \item Partial Hedging numbers assigned arbitrarily.
+        \item Unaware of client risk appetite, accounting needs or cost constraints.
+    \end{itemize}
+    
+\end{frame}
+    
+\section{Next Steps}
+\begin{frame}{Next Steps}
+
+    \begin{itemize}
+        \item Implement back-testing framework.
+        \item Model interest rate as a stochastic function (e.g. Heston + SABR)
+        \item Different weighting schemes depending on client needs.
+        \item Modeling should be aware of regimes.
+        \item Liquidity conscious decision-making and metrics (e.g. Liquidity VaR).
+    \end{itemize}
+    
+\end{frame}
+
+\end{document}

@@ -3,3 +3,5 @@ VaR
 favourable
 CVaR
 utilised
+Nassef
+minimised
